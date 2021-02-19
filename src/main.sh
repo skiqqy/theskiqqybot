@@ -29,14 +29,10 @@ done
 SCRIPT_PATH=$(dirname $0)
 . "$SCRIPT_PATH/alert.sh" > /dev/null 2>&1
 [ ! $(command -v error) ] && echo "[WARNING] Missing 'error.sh' import."
-[ ! $(command -v mail) ] && error "Missing \'mail\' command."
-[ ! $(command -v mailx) ] && error "Missing \'mailx\' command."
-[ ! $(command -v sendmail) ] && error "Missing \'sendmail\' command."
 
 # Vars
 domain="skiqqy.xyz"
 subd=( api git irc proj blog wiki files social music dev )
-target="@gmail.com" # Who we will me mailing.
 SLEEP=60
 DOWNC=5 # What we consider to be an unacceptable amount of down domains warrenting an email.
 
