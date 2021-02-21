@@ -1,6 +1,14 @@
 #!/bin/bash
 # Auther: Skiqqy
 # This script checks on my web server and sends a telegram message if it is down.
+
+# Vars
+domain="skiqqy.xyz"
+subd=( api git irc proj blog wiki files social music dev )
+SLEEP=60
+DOWNC=5 # What we consider to be an unacceptable amount of down domains warrenting a message.
+# End vars
+
 usage () {
 	cat << EOF
 ./main.sh [options]
@@ -30,11 +38,14 @@ SCRIPT_PATH=$(dirname $0)
 . "$SCRIPT_PATH/alert.sh" > /dev/null 2>&1
 [ ! $(command -v error) ] && echo "[WARNING] Missing 'error.sh' import."
 
-# Vars
-domain="skiqqy.xyz"
-subd=( api git irc proj blog wiki files social music dev )
-SLEEP=60
-DOWNC=5 # What we consider to be an unacceptable amount of down domains warrenting an email.
+# Usage: debug "Some Text"
+# Prints messages if verbose is set
+debug () {
+	if [ ! -z $verbose ]
+	then
+		echo -e $1
+	fi
+}
 
 http_code () {
 	echo $(curl -s -o /dev/null -w "%{http_code}" $1)
@@ -43,10 +54,12 @@ http_code () {
 # Sends a telegram message to the chat_id
 # $1: The message we send
 send_message () {
-	result=$(curl -s -X POST https://api.telegram.org/bot$bot_token/sendMessage -d chat_id=$chat_id -d text="$1")
-	if [ ! -z $verbose ]
+	if [ -z $reset ]
 	then
-		echo $result
+		result=$(curl -s -X POST https://api.telegram.org/bot$bot_token/sendMessage -d chat_id=$chat_id -d text="$1")
+		reset=0
+		debug $result
+		debug "Sending: $1"
 	fi
 }
 
@@ -80,9 +93,11 @@ then
 fi
 
 send_message "Server Watcher has started up."
+reset=
 
 for ((;;))
 do
+	debug "\nRestart main event loop."
 	code=$(http_code https://$domain)
 	down=()
 	downc=0
@@ -91,24 +106,28 @@ do
 		for sub in ${subd[@]}
 		do
 			code=$(http_code "https://$sub.$domain")
+			debug "checking $sub.$domain = $code"
 			if [ ! "$code" -eq 200 ]
 			then
 				# We take note that this domain is down.
 				downc=$(( downc + 1 ))
-				down+=( "$sub.domain" )
+				down+=( "$sub.$domain" )
 			fi
 		done
+		down="${down[@]}"
 
-		# Check to see if the # of downed domains warrents an email.
+		# Check to see if the # of downed domains warrents an msg.
 		if [ "$downc" -ge $DOWNC ]
 		then
-			send_message "The following domains are down\n${down[@]}" "Server Warning: Catastrophic"
+			send_message "Server Warning Catastrophic: The following domains are down -> $down"
+			warning "Domains: ${down[@]} are down."
 		else
 			reset=
 		fi
+		debug "Finished checking subdomains."
 	else
 		warning "$domain is down"
-		send_message "$domain is down." "Server Warning"
+		send_message "Server Warning: $domain is down."
 	fi
 	sleep $SLEEP
 done
