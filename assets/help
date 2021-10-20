@@ -1,4 +1,7 @@
-Welcome to theskiqqybot help page.
+theskiqqybot(1)
 
-Current Available Commands
-status: Return the status of skiqqy.xyz and subdomains.
+Commands:
+
+* /help # Shows this message
+* /status [SUB DOMAINS] # See staus of skiqqy domains
+* /refresh # refresh IP records

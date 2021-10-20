@@ -45,7 +45,7 @@ gen_key_config () {
 api_id=<id>
 api_hash=<hash>
 bot_token=<token>
-database_encryption_key=$rand_key
+db_key=$rand_key
 chat_id=<optional>
 EOF
 }

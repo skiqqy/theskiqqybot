@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+alias test='bash src/message_watcher.sh'
+alias tsb='./start.sh'
+
+if [[ ! "$PS1" =~ ^\[SkiqqyBotDev\].*$ ]]
+then
+	export PS1="[SkiqqyBotDev] $PS1" # Update PS1 to indicate we have sourced . dev
+fi
